@@ -7,32 +7,14 @@ from openai import OpenAI
 app = Flask(__name__)
 CORS(app)
 
+# API key uit Render environment variables
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_bp(text):
 
     prompt = f"""
-Maak een begeleidingsplan met:
-- sectie1
-- sectie2
-- sectie3
+Je bent een expert in cluster 1 onderwijs (visuele beperking).
 
-Geef output als JSON:
-{{
-  "sectie1": "...",
-  "sectie2": "...",
-  "sectie3": "..."
-}}
+Verwerk onderstaande informatie tot een begeleidingsplan met:
 
-INPUT:
-{text}
-"""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    result_text = response.choices[0].message.content
-
-    try:
+- Sectie 1 (analyse + situatie)
