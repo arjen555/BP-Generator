@@ -31,7 +31,18 @@ INPUT:
         ]
     )
 
-    return response.choices[0].message.content
+import json
+
+result_text = response.choices[0].message.content
+
+try:
+    return json.loads(result_text)
+except:
+    return {
+        "sectie1": "Fout bij verwerken output",
+        "sectie2": result_text,
+        "sectie3": ""
+    }
 
 
 @app.route("/generate", methods=["POST"])
