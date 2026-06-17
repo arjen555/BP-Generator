@@ -7,14 +7,58 @@ from openai import OpenAI
 app = Flask(__name__)
 CORS(app)
 
-# API key uit Render environment variables
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def generate_bp(text):
 
-    prompt = f"""
-Je bent een expert in cluster 1 onderwijs (visuele beperking).
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""
+Maak een begeleidingsplan met:
 
-Verwerk onderstaande informatie tot een begeleidingsplan met:
+- sectie1
+- sectie2
+- sectie3
 
-- Sectie 1 (analyse + situatie)
+Geef ALLEEN JSON terug:
+
+{{
+  "sectie1": "...",
+  "sectie2": "...",
+  "sectie3": "..."
+}}
+
+INPUT:
+{text}
+"""
+            }
+        ]
+    )
+
+    result_text = response.choices[0].message.content
+
+    try:
+        parsed = json.loads(result_text)
+    except Exception:
+        parsed = {
+            "sectie1": result_text,
+            "sectie2": "",
+            "sectie3": ""
+        }
+
+    return parsed
+
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    data = request.get_json()
+    result = generate_bp(data.get("text", ""))
+    return jsonify(result)
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
